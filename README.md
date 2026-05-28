@@ -152,6 +152,16 @@ The pipeline was validated by executing the brute-force attack script one final 
 ---
 
 ## 👨‍💻 About the Author
-I am a professional based in Australia with a highly unique background that bridges rigorous clinical healthcare operations with advanced technical engineering. Currently practicing as a Registered Nurse with extensive experience in high-stakes clinical hospital environments, I have spent my career making critical, rapid decisions under pressure.
+I am a Junior Cyber Security Analyst and IT Support Specialist based in Canberra, ACT. I hold a Master of Information Technology (Cyber Security) from Charles Sturt University, graduating with a 4.92 GPA. 
 
-Driven by a deep passion for technology, data, and efficiency, I am actively expanding my expertise into cloud architecture and cybersecurity. Beyond SOC automation, I focus on the practical applications of artificial intelligence for workflow efficiency, technical financial market analysis, and programmatic problem-solving. This project represents my dedication to cross-disciplinary engineering—bringing the meticulous analytical rigor and operational discipline of healthcare into the modern cloud security landscape.
+Currently, I operate as an IT Support Specialist at Extratech, where I manage high-volume enterprise escalations, administer Microsoft Intune and Entra ID identity lifecycles, and monitor perimeter defenses. I specialize in bridging daily IT operations with proactive security measures, focusing on Azure/M365 administration and aligning environments with ASD Essential Eight frameworks.
+
+Beyond enterprise operations, I actively design and deploy cloud-native security pipelines. My hands-on engineering experience includes deploying global threat intelligence dashboards, configuring zero-touch Windows Autopilot environments, and building Microsoft Sentinel SIEM architectures capable of intercepting and visualizing thousands of live brute-force attacks. I am currently advancing my SOC capabilities by pursuing the Blue Team Level 1 (BTL1) and Microsoft SC-200 certifications.
+
+<br>
+
+<div align="center">
+  <a href="https://www.linkedin.com/in/shankarbaral1" target="_blank">
+    <img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn Profile" />
+  </a>
+</div>
