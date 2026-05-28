@@ -151,17 +151,27 @@ The pipeline was validated by executing the brute-force attack script one final 
 
 ---
 
+---
+
 ## 👨‍💻 About the Author
-I am a Junior Cyber Security Analyst and IT Support Specialist based in Canberra, ACT. I hold a Master of Information Technology (Cyber Security) from Charles Sturt University, graduating with a 4.92 GPA. 
-
-Currently, I operate as an IT Support Specialist at Extratech, where I manage high-volume enterprise escalations, administer Microsoft Intune and Entra ID identity lifecycles, and monitor perimeter defenses. I specialize in bridging daily IT operations with proactive security measures, focusing on Azure/M365 administration and aligning environments with ASD Essential Eight frameworks.
-
-Beyond enterprise operations, I actively design and deploy cloud-native security pipelines. My hands-on engineering experience includes deploying global threat intelligence dashboards, configuring zero-touch Windows Autopilot environments, and building Microsoft Sentinel SIEM architectures capable of intercepting and visualizing thousands of live brute-force attacks. I am currently advancing my SOC capabilities by pursuing the Blue Team Level 1 (BTL1) and Microsoft SC-200 certifications.
-
-<br>
 
 <div align="center">
-  <a href="https://www.linkedin.com/in/shankarbaral1" target="_blank">
-    <img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn Profile" />
-  </a>
+
+# Shankar Baral
+### 🛡️ Junior Cyber Security Analyst | SOC Operations | Azure & Sentinel
+
+**Master of Cyber Security (GPA: 4.92) | Australian Permanent Resident | Canberra, ACT**
+
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-shankarbaral1-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://linkedin.com/in/shankarbaral1)
+[![Email](https://img.shields.io/badge/Email-Contact_Me-EA4335?style=for-the-badge&logo=gmail&logoColor=white)](mailto:shankarbaral1@gmail.com)
+[![TryHackMe](https://img.shields.io/badge/TryHackMe-Pre_Security-212C42?style=for-the-badge&logo=tryhackme&logoColor=white)](https://tryhackme.com/certificate/THM-WOIURVWPR8)
+[![GitHub](https://img.shields.io/badge/GitHub-shank078-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/shank078)
+
+<br>
 </div>
+
+I am an IT Support Specialist and Junior Cyber Security Analyst based in Canberra, ACT. I hold a Master of Information Technology (Cyber Security) from Charles Sturt University, graduating with a highly distinguished 4.92 GPA.
+
+Currently, I operate at Extratech, where I manage high-volume enterprise escalations, administer Microsoft Intune and Entra ID identity lifecycles, and monitor perimeter defenses. I specialize in bridging daily IT operations with proactive security measures, focusing on Azure/M365 administration and aligning environments with ASD Essential Eight frameworks.
+
+Beyond enterprise operations, I actively design and deploy cloud-native security pipelines. My hands-on engineering experience includes deploying global threat intelligence dashboards, configuring zero-touch Windows Autopilot environments, and building Microsoft Sentinel SIEM architectures capable of intercepting and visualizing thousands of live brute-force attacks. I am currently advancing my SOC capabilities by actively pursuing the Blue Team Level 1 (BTL1) and Microsoft SC-200 certifications.
