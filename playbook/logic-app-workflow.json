@@ -1,0 +1,56 @@
+{
+  "comment": "playbook-sentinel-to-jira - Sentinel incident trigger -> HTTP POST to Jira REST API. Auth header, Jira domain, and connection id redacted. The retryPolicy was added after the lab run; the run in the screenshots used Logic Apps defaults.",
+  "definition": {
+    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "$connections": { "type": "Object", "defaultValue": {} }
+    },
+    "triggers": {
+      "Microsoft_Sentinel_incident": {
+        "type": "ApiConnectionWebhook",
+        "inputs": {
+          "host": {
+            "connection": { "name": "@parameters('$connections')['azuresentinel']['connectionId']" }
+          },
+          "body": { "callback_url": "@{listCallbackUrl()}" },
+          "path": "/incident-creation"
+        }
+      }
+    },
+    "actions": {
+      "HTTP": {
+        "type": "Http",
+        "runAfter": {},
+        "inputs": {
+          "method": "POST",
+          "uri": "https://<your-domain>.atlassian.net/rest/api/3/issue",
+          "retryPolicy": {
+            "type": "exponential",
+            "count": 4,
+            "interval": "PT20S"
+          },
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Basic <base64(email:api-token)>"
+          },
+          "body": {
+            "fields": {
+              "project": { "key": "SOC" },
+              "summary": "High Severity Incident: @{triggerBody()?['object']?['properties']?['title']}",
+              "description": {
+                "type": "doc",
+                "version": 1,
+                "content": [
+                  { "type": "paragraph", "content": [ { "type": "text", "text": "Sentinel has detected a suspicious sign-in." } ] },
+                  { "type": "paragraph", "content": [ { "type": "text", "text": "Severity: @{triggerBody()?['object']?['properties']?['severity']}" } ] }
+                ]
+              },
+              "issuetype": { "name": "Task" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

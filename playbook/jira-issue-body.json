@@ -1,0 +1,25 @@
+{
+  "fields": {
+    "project": { "key": "SOC" },
+    "summary": "High Severity Incident: @{triggerBody()?['object']?['properties']?['title']}",
+    "description": {
+      "type": "doc",
+      "version": 1,
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            { "type": "text", "text": "Sentinel has detected a suspicious sign-in." }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            { "type": "text", "text": "Severity: @{triggerBody()?['object']?['properties']?['severity']}" }
+          ]
+        }
+      ]
+    },
+    "issuetype": { "name": "Task" }
+  }
+}
