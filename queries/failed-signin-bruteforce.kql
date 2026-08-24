@@ -1,0 +1,24 @@
+// Sentinel analytic rule - Entra ID sign-in brute force
+// MITRE ATT&CK: T1110 (Brute Force)
+// Data source : SigninLogs (Entra ID via the Microsoft Entra ID data connector)
+// Signal      : ResultType 50126 = "invalid username or password" - the exact code a
+//               password-guessing attack generates. Filtering on it drops MFA failures
+//               and conditional-access blocks from the alert scope.
+// Threshold   : 5 failures/hour per user+IP. Above normal typo rates, and below Entra
+//               smart lockout's default of 10 - so the rule fires while failures still
+//               return 50126 (after lockout they shift to 50053 and this signal goes quiet).
+// Deployment  : the ago(1h) filter below is for running this interactively in Logs
+//               (as in the screenshots). In the scheduled analytic rule, remove it and
+//               set the lookback in the rule configuration - hardcoding both can miss
+//               events when ingestion is delayed.
+// Entities    : in the rule config, IPAddress maps to the IP entity and
+//               UserPrincipalName to the Account entity, which is what the playbook
+//               reads from the incident.
+
+SigninLogs
+| where ResultType == "50126"
+| where TimeGenerated > ago(1h)
+| summarize FailedAttempts = count() by UserPrincipalName, IPAddress, Location
+| where FailedAttempts > 5
+| project UserPrincipalName, IPAddress, Location, FailedAttempts
+| order by FailedAttempts desc
