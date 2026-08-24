@@ -1,81 +1,73 @@
-# ⚡ Cloud-Native SOAR Pipeline — Microsoft Sentinel to Jira
-### *Zero-touch incident response. Detection to ticket in seconds. No analyst required.*
+# SOAR Pipeline — Microsoft Sentinel to Jira
+
+### A Sentinel brute-force incident creates a Jira ticket automatically, with the incident details already mapped into the fields
 
 <p align="left">
   <img src="https://img.shields.io/badge/Microsoft_Sentinel-0078D4?style=for-the-badge&logo=microsoftazure&logoColor=white"/>
   <img src="https://img.shields.io/badge/Azure_Logic_Apps-5C2D91?style=for-the-badge&logo=azure&logoColor=white"/>
   <img src="https://img.shields.io/badge/Jira-0052CC?style=for-the-badge&logo=jira&logoColor=white"/>
   <img src="https://img.shields.io/badge/KQL-00B4D8?style=for-the-badge&logo=microsoftazure&logoColor=white"/>
-  <img src="https://img.shields.io/badge/REST_API-FF6B35?style=for-the-badge&logo=postman&logoColor=white"/>
   <img src="https://img.shields.io/badge/MITRE_ATT%26CK-T1110-E63946?style=for-the-badge&logo=shield&logoColor=white"/>
 </p>
 
 ---
 
-## ⚡ TL;DR — What This Does
+## What this does
 
-| Step | What Happens | Who Does It |
-|------|-------------|-------------|
-| **1** | Attacker script generates rapid Entra ID authentication failures | Attacker |
-| **2** | KQL analytic rule detects brute-force pattern (Error `50126`) | Microsoft Sentinel |
-| **3** | High-severity incident fires — automation rule triggers | Microsoft Sentinel |
-| **4** | Serverless Logic App playbook executes | Azure |
-| **5** | HTTP POST with full incident context hits Jira REST API | Logic App |
-| **6** | Fully contextualised Jira ticket appears in SOC queue | Jira — Zero human touch |
+| Step | What happens | Where |
+|------|-------------|-------|
+| 1 | An attacker script generates rapid Entra ID sign-in failures | Attacker |
+| 2 | A KQL analytic rule matches the brute-force pattern (error `50126`) | Microsoft Sentinel |
+| 3 | A High-severity incident fires; an automation rule triggers | Microsoft Sentinel |
+| 4 | A Logic App playbook runs | Azure |
+| 5 | An HTTP POST with the incident details hits the Jira REST API | Logic App |
+| 6 | A Jira ticket appears in the SOC queue, fields already filled in | Jira |
 
-> **Mean Time to Ticket: seconds. Manual analyst effort: zero.**
-
----
-
-## 📖 What This Project Is
-
-In modern SOC environments, minimising **Mean Time to Respond (MTTR)** is critical to halting lateral threat movement. Manually copying alert variables from a SIEM into an ITSM queue creates operational drag, introduces human error, and costs analyst time that should be spent on triage — not data entry.
-
-This project demonstrates the end-to-end design, engineering, and deployment of a **zero-touch Security Orchestration, Automation, and Response (SOAR)** pipeline. By bridging **Microsoft Sentinel** with **Atlassian Jira via a custom REST API integration**, the environment autonomously detects brute-force attacks and provisions fully contextualised incident tickets — with no analyst touch required from detection to ticket.
+The detection query, the Jira request body, and the full Logic App definition are committed in [`queries/`](queries/) and [`playbook/`](playbook/).
 
 ---
 
-## 🏗️ Architecture
+## What This Project Is
+
+Copying alert details from a SIEM into a ticketing queue by hand is slow and error-prone, and it's time an analyst should spend on triage rather than data entry. This project automates that hand-off: **Microsoft Sentinel** detects a brute-force attack against **Entra ID**, and an **Azure Logic App** creates a **Jira** ticket through the REST API with the incident's details already mapped into the issue — no manual step between detection and ticket.
+
+I built it as a lab to understand how SOAR automation reduces mean time to respond (MTTR), and where the practical friction is: trigger choice, credential handling, RBAC, and the JSON depth of the Jira API.
+
+---
+
+## Architecture
 
 ```mermaid
 graph LR
-    A["🔴 Attacker Script\nBrute Force Auth Loop"] -->|Rapid auth failures| B["Microsoft Entra ID"]
+    A["Attacker Script<br/>Brute-force auth loop"] -->|Rapid auth failures| B["Microsoft Entra ID"]
     B -->|Auth telemetry| C["Log Analytics Workspace"]
-    C -->|KQL Detection Rule\nError code 50126| D["Microsoft Sentinel\nHigh Severity Incident"]
-    D -->|Automation Rule triggers| E["Azure Logic App\nServerless Playbook"]
-    E -->|HTTP POST\nJSON payload| F["Atlassian Jira\nSOC Ticket Queue"]
+    C -->|"KQL rule<br/>ResultType 50126"| D["Microsoft Sentinel<br/>High-severity incident"]
+    D -->|Automation rule triggers| E["Azure Logic App<br/>playbook-sentinel-to-jira"]
+    E -->|"HTTP POST<br/>JSON body"| F["Atlassian Jira<br/>SOC ticket queue"]
 ```
-
-**Pipeline Phases:**
-- **Phase 1:** Adversarial script generates rapid Entra ID authentication failures
-- **Phase 2:** Log Analytics ingests raw telemetry via native cloud connectors
-- **Phase 3:** KQL analytics rule isolates error code `50126` and fires a High-severity incident
-- **Phase 4:** Sentinel Automation Rule intercepts the alert and instantiates the Logic App
-- **Phase 5:** Playbook parses dynamic incident data and pushes an HTTP POST to Jira REST API
-- **Phase 6:** Fully contextualised ticket lands in the SOC queue — automatically
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 | Component | Technology | Purpose |
 |-----------|-----------|---------|
-| **SIEM** | Microsoft Sentinel | Threat detection + incident management |
+| **SIEM** | Microsoft Sentinel | Detection + incident management |
 | **Identity Provider** | Microsoft Entra ID | Auth telemetry source |
-| **Log Storage** | Log Analytics Workspace | Raw event ingestion + KQL queries |
-| **Automation** | Azure Logic Apps (serverless) | SOAR playbook execution |
-| **ITSM** | Atlassian Jira | SOC ticket queue destination |
-| **Integration** | Jira REST API + HTTP POST | Cross-platform ticket creation |
-| **Detection Language** | KQL (Kusto Query Language) | Brute-force analytics rule |
-| **MITRE ATT&CK** | T1110 — Brute Force | Detection framework mapping |
+| **Log Storage** | Log Analytics Workspace | Event ingestion + KQL |
+| **Automation** | Azure Logic Apps | Playbook execution |
+| **ITSM** | Atlassian Jira | Ticket queue destination |
+| **Integration** | Jira REST API v3 + HTTP action | Cross-platform ticket creation |
+| **Detection Language** | KQL | Brute-force analytic rule — [`queries/`](queries/) |
+| **MITRE ATT&CK** | T1110 — Brute Force | Detection mapping |
 
 ---
 
-## 🚀 Build Phases
+## Build Phases
 
-### Phase 1 — Adversarial Emulation (The Trigger)
+### Phase 1 — Attack Simulation (the trigger)
 
-To validate the pipeline against real-world parameters, an offensive PowerShell authentication loop was initiated — simulating a rapid password spray attack. This forced Entra ID to reject requests and populate the environment with actionable threat telemetry.
+To generate real telemetry, I ran a PowerShell authentication loop against a test Entra ID account — a rapid sequence of wrong passwords against a test account, which is what an automated password-guessing tool produces. This populated the sign-in logs with the failure pattern the detection is built to catch.
 
 ![Attack Simulation](images/00-attack-simulation-brute-force.png)
 
@@ -83,7 +75,7 @@ To validate the pipeline against real-world parameters, an offensive PowerShell 
 
 ### Phase 2 — Cloud Infrastructure & Log Storage
 
-A secure, sandboxed resource group was established in Azure. A Log Analytics Workspace was deployed to handle ingestion, parsing, and storage of incoming log streams.
+A dedicated resource group in Azure, with a Log Analytics Workspace to ingest and store the incoming sign-in logs.
 
 ![Resource Group Creation](images/02-resource-group-creation-form.png)
 
@@ -93,9 +85,9 @@ A secure, sandboxed resource group was established in Azure. A Log Analytics Wor
 
 ---
 
-### Phase 3 — SIEM Deployment & Data Connectors
+### Phase 3 — Sentinel & Data Connectors
 
-Microsoft Sentinel was initialised and native data connectors mapped to the Entra ID tenant — routing critical authentication logs directly into the security matrix.
+Microsoft Sentinel enabled on the workspace, with the native Entra ID connector routing sign-in and audit logs into it.
 
 ![Sentinel Enabled](images/04-microsoft-sentinel-enabled.png)
 
@@ -111,21 +103,21 @@ Microsoft Sentinel was initialised and native data connectors mapped to the Entr
 
 ---
 
-### Phase 4 — Detection Engineering (KQL)
+### Phase 4 — Detection Rule (KQL)
 
-Raw authentication tables were elevated to actionable intelligence. KQL detection logic was authored to isolate password failure patterns using Entra ID error code `50126` — filtering out standard operational noise.
+The analytic rule filters sign-in failures down to error code `50126` (invalid username or password) — the exact signal a brute-force attack against Entra ID produces. Filtering on this code keeps MFA failures and conditional-access blocks out of the alert scope. Full query: [`queries/failed-signin-bruteforce.kql`](queries/failed-signin-bruteforce.kql).
 
 ```kusto
 SigninLogs
-| where ResultType == "50126"          // Invalid username or password — brute-force signal
-| where TimeGenerated > ago(1h)
+| where ResultType == "50126"          // invalid username or password — the brute-force signal
+| where TimeGenerated > ago(1h)        // interactive runs only - the scheduled rule uses its own lookback
 | summarize FailedAttempts = count() by UserPrincipalName, IPAddress, Location
-| where FailedAttempts > 5             // >5 accounts for normal user typos; automated sprays exceed this immediately
+| where FailedAttempts > 5             // below Entra smart lockout's default of 10, so the rule fires while failures still return 50126
 | project UserPrincipalName, IPAddress, Location, FailedAttempts
 | order by FailedAttempts desc
 ```
 
-> **Error code `50126`** = Invalid username or password — the exact signal generated by a brute-force attack against Entra ID. Filtering on this code eliminates MFA failures and conditional access blocks from the alert scope.
+Two deployment details worth knowing: the `ago(1h)` line is for running the query interactively (as in the screenshot below) — in the scheduled rule the lookback is set in the rule configuration instead, because hardcoding both can miss events when ingestion lags. And the rule's entity mapping ties `IPAddress` to the IP entity and `UserPrincipalName` to the Account entity, which is what the playbook later reads from the incident.
 
 ![Live KQL Results](images/10-failed-signin-kql-live-results.png)
 
@@ -135,9 +127,9 @@ SigninLogs
 
 ---
 
-### Phase 5 — ITSM Target Setup (Jira)
+### Phase 5 — Jira Setup
 
-Before orchestrating the automated response, the destination ITSM platform required structural preparation to securely accept programmatic external API connections.
+Before automating the response, the Jira side needed a project and an API token so the Logic App could authenticate to the REST API.
 
 ![Jira Project Created](images/13-jira-project-created.png)
 
@@ -145,36 +137,15 @@ Before orchestrating the automated response, the destination ITSM platform requi
 
 ---
 
-### Phase 6 — SOAR Playbook Engineering (Logic App)
+### Phase 6 — Logic App Playbook
 
-The automated response was built using a serverless Azure Logic App. This playbook converts incoming Sentinel webhooks into dynamic outbound REST API requests — passing heavily nested JSON payload arrays to the Jira API.
+The playbook is two nodes: a **Microsoft Sentinel incident** trigger, and an **HTTP POST** to the Jira REST API. The full definition is committed at [`playbook/logic-app-workflow.json`](playbook/logic-app-workflow.json); the Jira request body is at [`playbook/jira-issue-body.json`](playbook/jira-issue-body.json).
 
-**Key engineering decisions:**
-- Used the **Microsoft Sentinel incident trigger** (not alert trigger) to capture full incident context including all alert entities
-- Encoded Jira API credentials as **Base64 Basic Auth** within the HTTP action header
-- Mapped Sentinel dynamic fields (`IncidentName`, `Severity`, `Description`, `Tactics`) directly into the Jira issue body using Atlassian Document Format (ADF):
+Three things worth calling out:
 
-```json
-{
-  "fields": {
-    "project": { "key": "SOC" },
-    "summary": "High Severity Incident: @{triggerBody()?['IncidentName']}",
-    "description": {
-      "type": "doc",
-      "version": 1,
-      "content": [
-        {
-          "type": "paragraph",
-          "content": [
-            { "type": "text", "text": "Severity: @{triggerBody()?['Severity']}" }
-          ]
-        }
-      ]
-    },
-    "issuetype": { "name": "Task" }
-  }
-}
-```
+- I used the **incident trigger**, not the alert trigger. The incident trigger carries the full aggregated context — all entities, all alerts, mapped tactics — where the alert trigger only carries a single alert. A ticket built from the incident is actually actionable.
+- Jira's REST API v3 uses **Atlassian Document Format (ADF)** for the description — a deeply nested JSON structure — so the Sentinel dynamic fields (`title`, `severity`) are mapped into that ADF body rather than a plain string.
+- The Jira credentials are encoded as **Base64 Basic Auth** in the HTTP header. That's fine for a lab; in production these would move to **Azure Key Vault** and be read via a **Managed Identity** so nothing is hardcoded.
 
 ![Logic App Created](images/15-logic-app-playbook-created.png)
 
@@ -186,9 +157,9 @@ The automated response was built using a serverless Azure Logic App. This playbo
 
 ---
 
-### Phase 7 — IAM Controls & Automation Routing
+### Phase 7 — RBAC & Automation Rule
 
-RBAC permissions were assigned for autonomous execution. An orchestration routing rule was configured to fire the playbook the moment the KQL analytic rule triggered.
+The Logic App needs the **Microsoft Sentinel Responder** role on the workspace to read incident data — without it the playbook fires but returns 403 on the data fetch. A Sentinel automation rule wires the analytic rule to the playbook so it runs the moment an incident is created.
 
 ![Automation Rule](images/19-sentinel-automation-rule-created.png)
 
@@ -198,9 +169,9 @@ RBAC permissions were assigned for autonomous execution. An orchestration routin
 
 ---
 
-### Phase 8 — Execution Validation (The Proof)
+### Phase 8 — End-to-End Test
 
-The pipeline was validated by re-running the brute-force attack script. The system performed end-to-end without intervention.
+Re-running the brute-force script drove the full pipeline with no manual steps. The Jira API returned **HTTP 201 Created**, and the ticket landed in the SOC queue with its fields populated.
 
 ![Sentinel Incident](images/21-sentinel-incidents-created.png)
 
@@ -208,98 +179,70 @@ The pipeline was validated by re-running the brute-force attack script. The syst
 
 ![API 201 Created](images/22b-logic-app-run-history-success.png)
 
-> **HTTP 201 Created** — the Jira REST API confirmed successful ticket creation. This is the handshake that proves the full pipeline is live.
-
 ![Jira Ticket Created](images/23-jira-ticket-auto-created.png)
 
 ![Ticket Details Mapped](images/23b-jira-ticket-details-mapped.png)
 
 ---
 
-## 🧠 Key Engineering Decisions & Lessons Learned
+## Key Decisions & Notes
 
-### 1. Incident Trigger vs Alert Trigger
-Sentinel offers both as Logic App triggers. The **incident trigger** was chosen because it captures the full aggregated context — all entities, all alerts, all tactics mapped — whereas the alert trigger only captures a single alert's data. For a Jira ticket to be actionable, it needs the full picture.
+### Incident trigger vs alert trigger
+The incident trigger was the right call because the ticket needs the full picture — all entities and tactics — not one alert's fields. This is the difference between a ticket an analyst can act on and one they have to go back to Sentinel to understand.
 
-### 2. JSON Payload Depth
-The Jira REST API v3 uses Atlassian Document Format (ADF) for issue descriptions — a deeply nested JSON structure. Mapping Sentinel's dynamic content into ADF required careful `compose` actions in the Logic App to build the payload correctly before the HTTP POST step.
+### Failure handling
+As run in the lab, the playbook did a single POST with Logic Apps' default behaviour — a Jira outage or rate-limit would have silently dropped the ticket. The committed definition now carries an explicit exponential `retryPolicy` (4 attempts from a 20-second base), added after the lab run. The remaining gap is a fallback when every retry fails — an email or Teams message to the SOC channel — so a dropped ticket is visible rather than lost.
 
-> **Production note:** Jira API credentials were encoded as Base64 Basic Auth in the HTTP action header — acceptable for a lab environment. In a production deployment, these credentials would be migrated to **Azure Key Vault** and accessed via a **Managed Identity** to eliminate hardcoded secrets entirely.
+### Ticket depth
+The ticket body is minimal: title and severity. An analyst opening it still has to go to Sentinel for the attacker IP and target account, which costs back some of the time the automation saves. The upgrade is parsing the incident's entities — the Sentinel connector's "Entities - Get IPs" and account actions — into the ADF description so the indicators land in the ticket itself. I've kept the committed workflow faithful to what ran rather than adding untested entity-parsing steps.
 
-### 3. RBAC is Non-Negotiable
-The Logic App requires the **Microsoft Sentinel Responder** role on the workspace to read incident data. Without this, the playbook fires but returns a 403 on every data fetch. Least-privilege assignment was documented and applied.
+### Credentials
+Base64 Basic Auth in the header is acceptable for a lab but not for production. The production version moves the token to Azure Key Vault and reads it via a Managed Identity, so the secret never lives in the workflow definition. The committed `logic-app-workflow.json` has the auth header, Jira domain, and connection id redacted.
 
-### 4. Real-World SOC Value
-This pipeline directly reduces **Mean Time to Respond (MTTR)**. In a manual workflow, an analyst must: notice the alert, open Sentinel, read the incident, open Jira, create a ticket, copy across all context. With this pipeline: zero steps. The ticket exists before the analyst opens their laptop.
-
----
-
-## 🔮 What's Next
-
-- **Bi-directional sync** — update Sentinel incident status when Jira ticket is resolved
-- **Entity enrichment** — query AbuseIPDB or VirusTotal before ticket creation and include threat intel score in the Jira description
-- **🤖 AI-Driven Triage** — pilot **IBM watsonx Orchestrate** agents to autonomously classify incident severity, enrich with threat intelligence, and route to the correct Jira queue based on attack type — before any human touches the ticket
+### What this is worth
+In a manual workflow an analyst has to notice the alert, open Sentinel, read the incident, open Jira, and copy everything across. This pipeline removes those steps for the detection-to-ticket hand-off, which is the slice of MTTR that's pure overhead.
 
 ---
 
-## 📁 Repository Structure
+## What's Next
+
+- **Bi-directional sync** — update the Sentinel incident status when the Jira ticket is resolved
+- **Entity-rich tickets** — parse the incident's entities (attacker IP, target account) into the Jira description via the connector's entity actions, then enrich with AbuseIPDB or VirusTotal reputation scores
+- **Fallback notification** — a Teams or email alert when all HTTP retries fail (the retry policy itself is now in the committed definition)
+
+---
+
+## Repository Structure
 
 ```
 azure-sentinel-jira-soar-pipeline/
-├── images/
-│   ├── 00-attack-simulation-brute-force.png
-│   ├── 01-resource-group-created.png
-│   ├── 02-resource-group-creation-form.png
-│   ├── 03-log-analytics-workspace-created.png
-│   ├── 04-microsoft-sentinel-enabled.png
-│   ├── 05-sentinel-workspace-connected-to-defender.png
-│   ├── 06-defender-data-connectors-entra-visible.png
-│   ├── 07-entra-id-connector-configuration.png
-│   ├── 08-entra-data-ingestion-confirmed.png
-│   ├── 09-auditlogs-query-results.png
-│   ├── 10-failed-signin-kql-live-results.png
-│   ├── 11-analytics-rule-created.png
-│   ├── 12-analytics-rule-simulation-results.png
-│   ├── 13-jira-project-created.png
-│   ├── 14-jira-api-token-created.png
-│   ├── 15-logic-app-playbook-created.png
-│   ├── 16-sentinel-incident-trigger-configured.png
-│   ├── 17-logic-app-http-action-jira-configured.png
-│   ├── 18-azuresentinel-api-connection-authorized.png
-│   ├── 19-sentinel-automation-rule-created.png
-│   ├── 20-sentinel-logic-app-permission-granted.png
-│   ├── 21-sentinel-incidents-created.png
-│   ├── 22-playbook-triggered-successfully.png
-│   ├── 22b-logic-app-run-history-success.png
-│   ├── 23-jira-ticket-auto-created.png
-│   ├── 23b-jira-ticket-details-mapped.png
-│   └── 24-automation-rule-active-confirmed.png
-└── README.md
+│
+├── README.md
+├── LICENSE
+├── .gitignore
+│
+├── queries/
+│   └── failed-signin-bruteforce.kql    # the Sentinel analytic rule (ResultType 50126)
+│
+├── playbook/
+│   ├── logic-app-workflow.json         # full Logic App definition (secrets redacted)
+│   └── jira-issue-body.json            # the ADF request body sent to the Jira REST API
+│
+└── images/                              # 27 screenshots — build, detection, playbook, end-to-end test
 ```
 
 ---
 
-## 🔗 Related Projects
+## Related Projects
 
 | Project | Description |
 |---------|-------------|
 | [Dual SIEM Detection Lab](https://github.com/shank078/Dual-SIEM-Detection-Lab) | 5 MITRE-mapped detections across Sentinel + Splunk on live attacker traffic |
 | [Azure Sentinel Honeypot SIEM](https://github.com/shank078/azure-sentinel-honeypot-siem) | 1,400+ real brute-force attempts captured and mapped globally |
-| [Azure Identity Security Lab](https://github.com/shank078/azure-identity-security-lab) | Full red/blue team MFA compromise and IR cycle |
+| [Azure Identity Security Lab](https://github.com/shank078/azure-identity-security-lab) | Red/blue team MFA compromise and IR cycle |
 
 ---
 
-## 👤 About the Author
+## About
 
-**Shankar Baral** — Junior Cyber Security Analyst & IT Support Specialist
-Master of Information Technology (Cyber Security) · GPA 4.92 · Australian Permanent Resident · Canberra, ACT
-
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-shankarbaral1-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://linkedin.com/in/shankarbaral1)
-[![GitHub](https://img.shields.io/badge/GitHub-shank078-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/shank078)
-[![Email](https://img.shields.io/badge/Email-shankarbaral1@gmail.com-EA4335?style=for-the-badge&logo=gmail&logoColor=white)](mailto:shankarbaral1@gmail.com)
-
-*Open to Junior SOC Analyst and Security Engineer opportunities in Australia.*
-
----
-
-> *The best incident response is the one that starts before the analyst opens their laptop.*
+Built and documented by **Shankar Baral** — junior SOC analyst in Canberra, Australia. More about me and my other labs: [github.com/shank078](https://github.com/shank078) · [LinkedIn](https://www.linkedin.com/in/shankarbaral1)
