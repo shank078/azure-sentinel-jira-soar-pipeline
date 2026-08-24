@@ -1,0 +1,22 @@
+# macOS
+.DS_Store
+
+# IDE / Editor
+.vscode/
+.idea/
+
+# Temporary files
+*.tmp
+*.log
+*.bak
+
+# Sensitive files - never commit
+*.env
+secrets/
+credentials/
+*.pem
+*.key
+*.pfx
+
+# OS thumbnails
+Thumbs.db
